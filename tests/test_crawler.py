@@ -7,6 +7,7 @@
 '''
 from wuhan_data.spiders.crawler import WuhanDataSpider
 from scrapy.http import Request, Response
+from nose.tools import assert_equals
 import pkg_resources
 import mock
 
@@ -60,6 +61,56 @@ def test_parse_first_request(mock_list):
     mock_list.assert_called_with(fake_response)
 
 
+def test_generate_data_item():
+    '''
+        Test ``WuhanDataSpider.generate_data_item``
+    '''
+    # 构造测试数据
+    fake_data = {
+        'id': 1,
+        'publicDate': 2,
+        'name': 3,
+        'source': 'wuhan_data',
+    }
+
+    # 假装启动了爬虫
+    spider = WuhanDataSpider()
+
+    # 获取方法读入伪装数据后生成的item
+    item = spider.generate_data_item(fake_data)
+
+    # 校验item的键值
+    for key, value in fake_data.iteritems():
+        if 'Date' in key:
+            key = 'public_time'
+        assert_equals(value, item[key])
 
 
+@mock.patch.object(WuhanDataSpider, 'generate_data_item')
+def test_parse_list_page(mock_gen):
+    '''
+        Test ``WuhanDataSpider.parse_list_page``
+    '''
+    # 假装启动了爬虫
+    spider = WuhanDataSpider()
 
+    # 假装返回了一个从list_template.json中读取内容的response
+    fake_response = fake_response_from_file('list_template.json')
+
+    # 获取parse_list_page读入response后生成的生成器
+    results = spider.parse_list_page(fake_response.body)
+
+    # 应该获得15个item
+    for index in xrange(15):
+        try:
+            results.next()
+        except StopIteration:
+            assert False
+
+    # 假装返回了一个从list_none.json中读取内容的response
+    fake_response = fake_response_from_file('list_none.json')
+
+    # 获取parse_list_page读入response后生成的生成器
+    results = spider.parse_list_page(fake_response.body)
+
+    assert results.next() is None

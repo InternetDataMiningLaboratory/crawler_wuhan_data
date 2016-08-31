@@ -10,5 +10,7 @@ import scrapy
 
 class WuhanDataItem(scrapy.Item):
     # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
+    name = scrapy.Field()
+    public_time = scrapy.Field()
+    source = scrapy.Field()
+    id = scrapy.Field()

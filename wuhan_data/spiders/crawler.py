@@ -10,6 +10,7 @@ import logging
 import arrow
 import json
 from scrapy.loader.processors import TakeFirst
+from wuhan_data.items import WuhanDataItem
 
 
 logger = logging.getLogger(__name__)
@@ -63,8 +64,46 @@ class WuhanDataSpider(scrapy.spiders.Spider):
 
         yield self.parse_list_page(response)
 
+    def generate_data_item(self, data):
+        '''
+            解析数据，得到结构化的Scrapy Item对象
+        '''
+        # 生成ItemLoader对象 
+        item_loader = scrapy.loader.ItemLoader(item=WuhanDataItem())
+
+        # 设置默认输出第一个值
+        item_loader.default_output_processor = TakeFirst()
+
+        # 读取数据id
+        item_loader.add_value('id', data['id'])
+
+        # 读取数据名称
+        item_loader.add_value('name', data['name'])
+
+        # 读取数据发布时间
+        item_loader.add_value('public_time', data['publicDate'])
+
+        # 写入数据来源
+        item_loader.add_value('source', 'wuhan_data')
+
+        # 返回构造的Item
+        return item_loader.load_item()
+
     def parse_list_page(self, response):
         '''
             解析列表页json，获取数据对应id，并生成数据下载url
         '''
-        pass
+        # json格式加载为python对象
+        list_page = json.loads(response)
+
+        # 获取该页所有数据
+        # 如果没有数据，打印log并结束对该页的解析
+        try:
+            datum = list_page['list']
+        except KeyError:
+            logger.error('{page_number} page no data')
+            yield None
+
+        # 对于每一个数据解析返回Item对象
+        for data in datum:
+            yield self.generate_data_item(data)
