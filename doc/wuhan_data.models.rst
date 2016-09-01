@@ -6,6 +6,8 @@ Submodules
 
 .. toctree::
 
+   wuhan_data.models.crawler_wuhan_data
+   wuhan_data.models.data
    wuhan_data.models.instance
 
 Module contents
