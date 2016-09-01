@@ -14,3 +14,8 @@ class WuhanDataItem(scrapy.Item):
     public_time = scrapy.Field()
     source = scrapy.Field()
     id = scrapy.Field()
+    url = scrapy.Field()
+    status = scrapy.Field()
+    filepath = scrapy.Field()
+    checksum = scrapy.Field()
+    filetype = scrapy.Field()

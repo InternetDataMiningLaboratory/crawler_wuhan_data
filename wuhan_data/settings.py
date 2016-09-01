@@ -69,6 +69,7 @@ EXTENSIONS = {
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'wuhan_data.pipelines.WuhanDataPipeline': 300,
+   'wuhan_data.pipelines.WuhanDataDownloadFilePipeline': 100,
 }#ITEM_PIPELINES = {
 #    'wuhan_data.pipelines.SomePipeline': 300,
 #}
@@ -93,3 +94,5 @@ ITEM_PIPELINES = {
 #HTTPCACHE_DIR = 'httpcache'
 #HTTPCACHE_IGNORE_HTTP_CODES = []
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
+FILES_STORE = 'F:\worspace\wdata'
+DOWNLOAD_TIMEOUT = 2000

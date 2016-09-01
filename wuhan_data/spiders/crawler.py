@@ -40,10 +40,10 @@ class WuhanDataSpider(scrapy.spiders.Spider):
         '''
             构造爬虫开始爬取的请求
         '''
-        return scrapy.Request(
+        return [scrapy.Request(
             self.list_url.format(page_number=1),
             callback=self.parse_first_request
-        )
+        )]
 
     def parse_first_request(self, response):
         '''
@@ -53,16 +53,15 @@ class WuhanDataSpider(scrapy.spiders.Spider):
         first_page = json.loads(response.body)
 
         # 解析总页数
-        page_numbers = first_page.get('lastPage', 0)
+        page_numbers = first_page.get('pages', 0)
 
         # 根据总页数，构造剩余列表页json的请求
-        for page_number in xrange(1, page_numbers):
+        for page_number in xrange(page_numbers):
             yield scrapy.Request(
                 self.list_url.format(page_number=page_number+1),
-                callback=self.parse_list_page
+                callback=self.parse_list_page,
+                dont_filter=True
             )
-
-        yield self.parse_list_page(response)
 
     def generate_data_item(self, data):
         '''
@@ -86,6 +85,12 @@ class WuhanDataSpider(scrapy.spiders.Spider):
         # 写入数据来源
         item_loader.add_value('source', 'wuhan_data')
 
+        # 读取pathForDatabase用'.'截断的最后一部分作为filetype
+        item_loader.add_value(
+            'filetype',
+            data['pathForDatabase'].split('.')[-1]
+        )
+
         # 返回构造的Item
         return item_loader.load_item()
 
@@ -94,7 +99,7 @@ class WuhanDataSpider(scrapy.spiders.Spider):
             解析列表页json，获取数据对应id，并生成数据下载url
         '''
         # json格式加载为python对象
-        list_page = json.loads(response)
+        list_page = json.loads(response.body)
 
         # 获取该页所有数据
         # 如果没有数据，打印log并结束对该页的解析

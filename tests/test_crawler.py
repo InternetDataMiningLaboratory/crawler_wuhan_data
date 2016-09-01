@@ -51,14 +51,10 @@ def test_parse_first_request(mock_list):
     # 获取parse_first_request传入response后的生成器
     results = spider.parse_first_request(fake_response)
 
-    # 总页数已知为8页，前七次返回应该为对应2-8页数的列表页请求
-    for index in xrange(2, 9):
+    # 总页数已知为113页，前112次返回应该为对应2-113页数的列表页请求
+    for index in xrange(1, 114):
         result = results.next()
         assert result.url == spider.list_url.format(page_number=index)
-
-    # 最后一次返回将会把当前响应传入到parse_list_page
-    result = results.next()
-    mock_list.assert_called_with(fake_response)
 
 
 def test_generate_data_item():
@@ -71,6 +67,7 @@ def test_generate_data_item():
         'publicDate': 2,
         'name': 3,
         'source': 'wuhan_data',
+        'pathForDatabase': '1.1',
     }
 
     # 假装启动了爬虫
@@ -83,6 +80,9 @@ def test_generate_data_item():
     for key, value in fake_data.iteritems():
         if 'Date' in key:
             key = 'public_time'
+        if 'path' in key:
+            key = 'filetype'
+            value = '1'
         assert_equals(value, item[key])
 
 
@@ -98,7 +98,7 @@ def test_parse_list_page(mock_gen):
     fake_response = fake_response_from_file('list_template.json')
 
     # 获取parse_list_page读入response后生成的生成器
-    results = spider.parse_list_page(fake_response.body)
+    results = spider.parse_list_page(fake_response)
 
     # 应该获得15个item
     for index in xrange(15):
@@ -111,6 +111,6 @@ def test_parse_list_page(mock_gen):
     fake_response = fake_response_from_file('list_none.json')
 
     # 获取parse_list_page读入response后生成的生成器
-    results = spider.parse_list_page(fake_response.body)
+    results = spider.parse_list_page(fake_response)
 
     assert results.next() is None
